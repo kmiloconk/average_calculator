@@ -8,9 +8,31 @@ class PvPage extends StatefulWidget {
 }
 
 class _PvPageState extends State<PvPage> {
-  final TextEditingController noteController = TextEditingController();
-  final TextEditingController percentageController = TextEditingController();
-  bool v = true;
+  final List<Map<String, TextEditingController>> fields = [];
+  bool v = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _addRow();
+  }
+
+  void _addRow() {
+    setState(() {
+      fields.add({
+        'note': TextEditingController(),
+        'percentage': TextEditingController(),
+      });
+    });
+  }
+
+  void _removeRow() {
+    if (fields.isNotEmpty) {
+      setState(() {
+        fields.removeLast();
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,87 +59,89 @@ class _PvPageState extends State<PvPage> {
               ],
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                const Expanded(child: Text('')),
-                const SizedBox(width: 50),
-                textfile(noteController),
-                const SizedBox(width: 30),
-                textfile(percentageController),
-                Visibility(visible: v, child: const SizedBox(width: 48)),
-                Visibility(
-                    visible: !v,
-                    child: IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.arrow_downward))),
-                const Expanded(child: Text('')),
-              ],
+            Flexible(
+              child: ListView.builder(
+                itemCount: fields.length,
+                itemBuilder: (context, index) {
+                  final noteController = fields[index]['note']!;
+                  final percentageController = fields[index]['percentage']!;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      children: [
+                        const Expanded(child: Text('')),
+                        const SizedBox(width: 50),
+                        textfile(noteController),
+                        const SizedBox(width: 30),
+                        textfile(percentageController),
+                        Visibility(
+                            visible: v, child: const SizedBox(width: 48)),
+                        Visibility(
+                          visible: !v,
+                          child: IconButton(
+                            onPressed: () {},
+                            icon: const Icon(Icons.arrow_downward),
+                          ),
+                        ),
+                        const Expanded(child: Text('')),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
-            const SizedBox(height: 10),
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  v = !v;
-                });
-              },
-              icon: const Icon(Icons.add),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.center,
+              child: IconButton(
+                onPressed: _addRow,
+                icon: const Icon(Icons.add),
+              ),
             ),
             const SizedBox(height: 24),
             Center(
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SizedBox(
-                    width: 100,
-                    height: 60,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                  button(Icons.arrow_back, 'Volver', Colors.red, _removeRow),
+                  const SizedBox(width: 16),
+                  ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.arrow_back, color: Colors.white),
                     ),
+                    child: const Text('Calcular',
+                        style: TextStyle(color: Colors.white)),
                   ),
                   const SizedBox(width: 16),
-                  SizedBox(
-                    width: 120,
-                    height: 60,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text('Calcular',
-                          style: TextStyle(color: Colors.white)),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  SizedBox(
-                    width: 100,
-                    height: 60,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text('Guardar',
-                          style: TextStyle(color: Colors.white)),
-                    ),
-                  ),
+                  button(null, 'Guardar', Colors.green, () {}),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget button(
+      IconData? icon, String text, Color color, VoidCallback onPressed) {
+    return SizedBox(
+      width: 100,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: icon != null
+            ? Icon(icon, color: Colors.white)
+            : Text(text, style: const TextStyle(color: Colors.white)),
       ),
     );
   }
