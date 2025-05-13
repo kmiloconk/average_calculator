@@ -9,6 +9,7 @@ class PvPage extends StatefulWidget {
 
 class _PvPageState extends State<PvPage> {
   final List<Map<String, TextEditingController>> fields = [];
+  final TextEditingController averageController = TextEditingController();
   bool v = false;
 
   @override
@@ -61,8 +62,17 @@ class _PvPageState extends State<PvPage> {
             const SizedBox(height: 8),
             Flexible(
               child: ListView.builder(
-                itemCount: fields.length,
+                itemCount: fields.length + 1, // uno más para el botón add
                 itemBuilder: (context, index) {
+                  if (index == fields.length) {
+                    return Center(
+                      child: IconButton(
+                        onPressed: _addRow,
+                        icon: const Icon(Icons.add),
+                      ),
+                    );
+                  }
+
                   final noteController = fields[index]['note']!;
                   final percentageController = fields[index]['percentage']!;
                   return Padding(
@@ -93,9 +103,20 @@ class _PvPageState extends State<PvPage> {
             const SizedBox(height: 8),
             Align(
               alignment: Alignment.center,
-              child: IconButton(
-                onPressed: _addRow,
-                icon: const Icon(Icons.add),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 120, vertical: 3),
+                child: TextField(
+                  controller: averageController,
+                  decoration: InputDecoration(
+                      hintText: '',
+                      fillColor: Colors.white,
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      enabled: false),
+                ),
               ),
             ),
             const SizedBox(height: 24),
