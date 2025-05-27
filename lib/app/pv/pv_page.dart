@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class PvPage extends StatefulWidget {
   const PvPage({super.key});
@@ -255,7 +256,7 @@ class _PvPageState extends State<PvPage> {
                       }),
                       const SizedBox(width: 16),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: _calculateAverage,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                           shape: RoundedRectangleBorder(
@@ -274,6 +275,76 @@ class _PvPageState extends State<PvPage> {
             ),
           ),
         ));
+  }
+
+  void _calculateAverage() {
+    double totalWeightedSum = 0;
+    double totalPercentage = 0;
+
+    for (int i = 0; i < fields.length; i++) {
+      final current = fields[i];
+
+      final isEditable = current['editable'] as bool;
+      final noteCtrl = current['note'] as TextEditingController;
+      final percentageCtrl = current['percentage'] as TextEditingController;
+      final showArrow = current['showArrow'] as bool;
+
+      double note = 0;
+      double percentage = 0;
+
+      if (showArrow) continue;
+
+      if (!isEditable) {
+        List<Map<String, dynamic>> subNotes = [];
+        int j = i + 1;
+        while (j < fields.length && (fields[j]['showArrow'] as bool)) {
+          subNotes.add(fields[j]);
+          j++;
+        }
+
+        double sum = 0;
+        double total = 0;
+
+        for (var sub in subNotes) {
+          final noteText = sub['note'].text.trim();
+          final percentText = sub['percentage'].text.trim();
+
+          final subNote = double.tryParse(noteText);
+          final subPercent = double.tryParse(percentText);
+
+          if (subNote != null && subPercent != null) {
+            sum += subNote * subPercent;
+            total += subPercent;
+          }
+        }
+
+        if (total > 0) {
+          note = sum / total;
+          noteCtrl.text = note.toStringAsFixed(1);
+          percentage = double.tryParse(percentageCtrl.text.trim()) ?? 0;
+        }
+      } else {
+        note = double.tryParse(noteCtrl.text.trim()) ?? 0;
+        percentage = double.tryParse(percentageCtrl.text.trim()) ?? 0;
+      }
+
+      if (percentage > 0) {
+        totalWeightedSum += note * percentage;
+        totalPercentage += percentage;
+      }
+    }
+
+    String result;
+    if (totalPercentage > 0) {
+      double average = totalWeightedSum / totalPercentage;
+      result = average.toStringAsFixed(1);
+    } else {
+      result = 'N/A';
+    }
+
+    setState(() {
+      averageController.text = result;
+    });
   }
 
   Widget button(
@@ -304,6 +375,7 @@ Widget textfile(TextEditingController controller, {bool enabled = true}) {
       controller: controller,
       textAlign: TextAlign.center,
       enabled: enabled,
+      keyboardType: TextInputType.number,
       decoration: InputDecoration(
         hintText: '',
         fillColor: enabled ? Colors.white : Colors.grey.shade300,
