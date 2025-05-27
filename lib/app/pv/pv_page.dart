@@ -62,7 +62,12 @@ class _PvPageState extends State<PvPage> {
 
   void _removeRowAt(int index) {
     setState(() {
-      fields.removeAt(index);
+      if (index != 0) {
+        if (!fields[index - 1]['editable']) {
+          fields[index - 1]['editable'] = true;
+        }
+        fields.removeAt(index);
+      }
     });
   }
 
