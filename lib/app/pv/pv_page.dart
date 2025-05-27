@@ -1,6 +1,10 @@
 import 'package:average_calculator/app/list/list_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:average_calculator/app/services/services.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 
 class PvPage extends StatefulWidget {
   final SubjectData? loadedData;
@@ -40,6 +44,7 @@ class _PvPageState extends State<PvPage> {
   @override
   void initState() {
     super.initState();
+    _loadSubjectsFromFile();
     if (widget.loadedData != null) {
       final data = widget.loadedData!;
       nameController.text = data.name;
@@ -322,7 +327,7 @@ class _PvPageState extends State<PvPage> {
                         );
 
                         setState(() {
-                          savedSubjects.add(subject);
+                          addOrReplaceSubject(subject);
                           nameController.clear();
                           averageController.clear();
                           fields.clear();
@@ -433,6 +438,42 @@ class _PvPageState extends State<PvPage> {
             : Text(text, style: const TextStyle(color: Colors.white)),
       ),
     );
+  }
+
+  Future<void> _loadSubjectsFromFile() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/subjects.json');
+
+    if (await file.exists()) {
+      final contents = await file.readAsString();
+      final List<dynamic> jsonData = jsonDecode(contents);
+
+      setState(() {
+        savedSubjects = jsonData.map((subject) {
+          return SubjectData(
+            name: subject['name'],
+            color: Color(subject['color']),
+            notes: (subject['notes'] as List<dynamic>).map((note) {
+              return NoteData(
+                note: note['note'].toDouble(),
+                percentage: note['percentage'].toDouble(),
+              );
+            }).toList(),
+          );
+        }).toList();
+      });
+    }
+  }
+
+  void addOrReplaceSubject(SubjectData newSubject) {
+    final index =
+        savedSubjects.indexWhere((subject) => subject.name == newSubject.name);
+    if (index != -1) {
+      savedSubjects[index] = newSubject;
+    } else {
+      savedSubjects.add(newSubject);
+    }
+    saveSubjectsToFile(savedSubjects);
   }
 }
 
