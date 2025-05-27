@@ -1,8 +1,10 @@
+import 'package:average_calculator/app/list/list_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class PvPage extends StatefulWidget {
-  const PvPage({super.key});
+  final SubjectData? loadedData;
+  const PvPage({super.key, this.loadedData});
 
   @override
   State<PvPage> createState() => _PvPageState();
@@ -10,6 +12,7 @@ class PvPage extends StatefulWidget {
 
 class _PvPageState extends State<PvPage> {
   final List<Map<String, dynamic>> fields = [];
+  List<SubjectData> savedSubjects = [];
   final TextEditingController averageController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
   final List<Color> availableColors = [
@@ -37,7 +40,24 @@ class _PvPageState extends State<PvPage> {
   @override
   void initState() {
     super.initState();
-    _addRow();
+    if (widget.loadedData != null) {
+      final data = widget.loadedData!;
+      nameController.text = data.name;
+      _changeColors(data.color);
+
+      for (var noteData in data.notes) {
+        fields.add({
+          'note': TextEditingController(text: noteData.note.toString()),
+          'percentage':
+              TextEditingController(text: noteData.percentage.toString()),
+          'editable': true,
+          'showAddButton': true,
+          'showArrow': false,
+        });
+      }
+    } else {
+      _addRow();
+    }
   }
 
   void _addRow({int? insertAt}) {
@@ -82,7 +102,13 @@ class _PvPageState extends State<PvPage> {
           elevation: 0,
           actions: [
             IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => SubjectListPage(subjects: savedSubjects)),
+                );
+              },
               icon: const Icon(Icons.menu),
             ),
           ],
@@ -267,7 +293,50 @@ class _PvPageState extends State<PvPage> {
                             style: TextStyle(color: Colors.white)),
                       ),
                       const SizedBox(width: 16),
-                      button(null, 'Guardar', Colors.green, () {}),
+                      button(null, 'Guardar', Colors.green, () {
+                        final List<NoteData> notesList = [];
+
+                        for (final field in fields) {
+                          final noteText =
+                              (field['note'] as TextEditingController)
+                                  .text
+                                  .trim();
+                          final percentText =
+                              (field['percentage'] as TextEditingController)
+                                  .text
+                                  .trim();
+
+                          final note = double.tryParse(noteText);
+                          final percentage = double.tryParse(percentText);
+
+                          if (note != null && percentage != null) {
+                            notesList.add(
+                                NoteData(note: note, percentage: percentage));
+                          }
+                        }
+
+                        final subject = SubjectData(
+                          name: nameController.text.trim(),
+                          color: appBarColor,
+                          notes: notesList,
+                        );
+
+                        setState(() {
+                          savedSubjects.add(subject);
+                          nameController.clear();
+                          averageController.clear();
+                          fields.clear();
+                          _changeColors(Colors.blue);
+                          _addRow();
+                        });
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Su asignatura se ha guardado'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }),
                     ],
                   ),
                 ),
@@ -386,4 +455,23 @@ Widget textfile(TextEditingController controller, {bool enabled = true}) {
       ),
     ),
   );
+}
+
+class SubjectData {
+  final String name;
+  final Color color;
+  final List<NoteData> notes;
+
+  SubjectData({
+    required this.name,
+    required this.color,
+    required this.notes,
+  });
+}
+
+class NoteData {
+  final double note;
+  final double percentage;
+
+  NoteData({required this.note, required this.percentage});
 }
