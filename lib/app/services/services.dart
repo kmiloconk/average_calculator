@@ -12,12 +12,7 @@ Future<void> saveSubjectsToFile(List<SubjectData> savedSubjects) async {
       .map((subject) => {
             'name': subject.name,
             'color': subject.color.value,
-            'notes': subject.notes
-                .map((note) => {
-                      'note': note.note,
-                      'percentage': note.percentage,
-                    })
-                .toList()
+            'notes': subject.notes.map((note) => note.toJson()).toList(),
           })
       .toList();
 

@@ -313,13 +313,20 @@ class _PvPageState extends State<PvPage> {
 
                           final note = double.tryParse(noteText);
                           final percentage = double.tryParse(percentText);
+                          final editable = field['editable'] as bool;
+                          final showArrow = field['showArrow'] as bool;
 
                           if (note != null && percentage != null) {
                             notesList.add(
-                                NoteData(note: note, percentage: percentage));
+                              NoteData(
+                                note: note,
+                                percentage: percentage,
+                                editable: editable,
+                                showArrow: showArrow,
+                              ),
+                            );
                           }
                         }
-
                         final subject = SubjectData(
                           name: nameController.text.trim(),
                           color: appBarColor,
@@ -327,7 +334,7 @@ class _PvPageState extends State<PvPage> {
                         );
 
                         setState(() {
-                          addOrReplaceSubject(subject);
+                          addOrReplaceSubject(subject.name, subject.color);
                           nameController.clear();
                           averageController.clear();
                           fields.clear();
@@ -445,57 +452,93 @@ class _PvPageState extends State<PvPage> {
     final file = File('${directory.path}/subjects.json');
 
     if (await file.exists()) {
-      final contents = await file.readAsString();
-      final List<dynamic> jsonData = jsonDecode(contents);
+      final jsonData = jsonDecode(await file.readAsString());
 
       setState(() {
-        savedSubjects = jsonData.map((subject) {
+        savedSubjects = (jsonData as List<dynamic>).map((subject) {
           return SubjectData(
             name: subject['name'],
             color: Color(subject['color']),
             notes: (subject['notes'] as List<dynamic>).map((note) {
-              return NoteData(
-                note: note['note'].toDouble(),
-                percentage: note['percentage'].toDouble(),
-              );
+              return NoteData.fromJson(note);
             }).toList(),
           );
         }).toList();
+
+        // Si se cargó un subject específico, recreamos los campos
+        if (widget.loadedData != null) {
+          fields.clear();
+          for (var noteData in widget.loadedData!.notes) {
+            fields.add({
+              'note': TextEditingController(text: noteData.note.toString()),
+              'percentage':
+                  TextEditingController(text: noteData.percentage.toString()),
+              'editable': noteData.editable,
+              'showAddButton': noteData.showAddButton,
+              'showArrow': noteData.showArrow,
+            });
+          }
+        }
       });
     }
   }
 
-  void addOrReplaceSubject(SubjectData newSubject) {
-    final index =
-        savedSubjects.indexWhere((subject) => subject.name == newSubject.name);
-    if (index != -1) {
-      savedSubjects[index] = newSubject;
-    } else {
-      savedSubjects.add(newSubject);
+  void addOrReplaceSubject(String name, Color color) {
+    final notesList = <NoteData>[];
+
+    for (final field in fields) {
+      final noteText = (field['note'] as TextEditingController).text.trim();
+      final percentText =
+          (field['percentage'] as TextEditingController).text.trim();
+
+      final note = double.tryParse(noteText);
+      final percentage = double.tryParse(percentText);
+
+      if (note != null && percentage != null) {
+        notesList.add(NoteData(
+          note: note,
+          percentage: percentage,
+          editable: field['editable'] as bool,
+          showAddButton: field['showAddButton'] as bool,
+          showArrow: field['showArrow'] as bool,
+        ));
+      }
     }
+
+    final subject = SubjectData(name: name, color: color, notes: notesList);
+
+    setState(() {
+      final index = savedSubjects.indexWhere((s) => s.name == name);
+      if (index != -1) {
+        savedSubjects[index] = subject;
+      } else {
+        savedSubjects.add(subject);
+      }
+    });
+
     saveSubjectsToFile(savedSubjects);
   }
-}
 
-Widget textfile(TextEditingController controller, {bool enabled = true}) {
-  return SizedBox(
-    width: 100,
-    height: 50,
-    child: TextField(
-      controller: controller,
-      textAlign: TextAlign.center,
-      enabled: enabled,
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(
-        hintText: '',
-        fillColor: enabled ? Colors.white : Colors.grey.shade300,
-        filled: true,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10.0),
+  Widget textfile(TextEditingController controller, {bool enabled = true}) {
+    return SizedBox(
+      width: 100,
+      height: 50,
+      child: TextField(
+        controller: controller,
+        textAlign: TextAlign.center,
+        enabled: enabled,
+        keyboardType: TextInputType.number,
+        decoration: InputDecoration(
+          hintText: '',
+          fillColor: enabled ? Colors.white : Colors.grey.shade300,
+          filled: true,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class SubjectData {
@@ -513,6 +556,31 @@ class SubjectData {
 class NoteData {
   final double note;
   final double percentage;
+  final bool editable;
+  final bool showAddButton;
+  final bool showArrow;
 
-  NoteData({required this.note, required this.percentage});
+  NoteData({
+    required this.note,
+    required this.percentage,
+    this.editable = true,
+    this.showAddButton = true,
+    this.showArrow = false,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'note': note,
+        'percentage': percentage,
+        'editable': editable,
+        'showAddButton': showAddButton,
+        'showArrow': showArrow,
+      };
+
+  factory NoteData.fromJson(Map<String, dynamic> json) => NoteData(
+        note: (json['note'] as num).toDouble(),
+        percentage: (json['percentage'] as num).toDouble(),
+        editable: json['editable'] ?? true,
+        showAddButton: json['showAddButton'] ?? true,
+        showArrow: json['showArrow'] ?? false,
+      );
 }
