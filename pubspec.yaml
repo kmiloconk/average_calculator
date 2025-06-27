@@ -31,6 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
   path_provider: ^2.0.15
+  flutter_launcher_icons: ^0.13.1
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -48,6 +49,11 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^4.0.0
 
+flutter_launcher_icons:
+  image_path: "lib/app/assets/inoco_app.jpg"  # Ruta de tu ícono
+  android: true
+  ios: true
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -58,6 +64,8 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  assets:
+    - lib/app/assets/Logo moderno de PrometriX con gráfico.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

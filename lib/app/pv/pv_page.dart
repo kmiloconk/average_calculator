@@ -1,6 +1,5 @@
-import 'package:average_calculator/app/list/list_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+//import 'package:flutter/services.dart';
 import 'package:average_calculator/app/services/services.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -24,7 +23,7 @@ class _PvPageState extends State<PvPage> {
     Colors.green,
     Colors.purple,
     Colors.blue,
-    Colors.black,
+    Colors.grey,
     Colors.orange,
     Colors.purpleAccent,
     Colors.brown,
@@ -101,20 +100,22 @@ class _PvPageState extends State<PvPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          backgroundColor: appBarColor,
+          backgroundColor: Colors.transparent,
           iconTheme: const IconThemeData(color: Colors.white),
-          automaticallyImplyLeading: false,
+          automaticallyImplyLeading: true,
           elevation: 0,
           actions: [
             IconButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => SubjectListPage(subjects: savedSubjects)),
-                );
+                setState(() {
+                  nameController.clear();
+                  averageController.clear();
+                  fields.clear();
+                  _changeColors(Colors.blue);
+                  _addRow();
+                });
               },
-              icon: const Icon(Icons.menu),
+              icon: const Icon(Icons.add),
             ),
           ],
           leading: Theme(
@@ -335,11 +336,6 @@ class _PvPageState extends State<PvPage> {
 
                         setState(() {
                           addOrReplaceSubject(subject.name, subject.color);
-                          nameController.clear();
-                          averageController.clear();
-                          fields.clear();
-                          _changeColors(Colors.blue);
-                          _addRow();
                         });
 
                         ScaffoldMessenger.of(context).showSnackBar(
