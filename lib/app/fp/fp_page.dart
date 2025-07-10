@@ -19,6 +19,7 @@ class _HomePageState extends State<HomePage> {
   List<SubjectData> savedSubjects = [];
   Color black = Colors.black;
   Color white = Colors.white;
+  bool dark = true;
 
   @override
   void initState() {
@@ -29,13 +30,13 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: black, // Fondo negro
+      backgroundColor: black,
       appBar: AppBar(
         backgroundColor: black,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings, color: Colors.white),
+            icon: Icon(Icons.settings, color: white),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Configuraciones próximamente')),
@@ -43,15 +44,46 @@ class _HomePageState extends State<HomePage> {
             },
           ),
         ],
+        leading: IconButton(
+            onPressed: () {
+              setState(() {
+                if (dark) {
+                  dark = false;
+                  white = Colors.black;
+                  black = Colors.white;
+                } else {
+                  dark = true;
+                  white = Colors.white;
+                  black = Colors.black;
+                }
+              });
+            },
+            icon: Icon(
+              dark ? Icons.mode_night : Icons.sunny,
+              color: white,
+            )),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Center(
-            child: Image.asset(
-              'lib/app/assets/Logo moderno de PrometriX con gráfico.png',
-              width: 260,
-              fit: BoxFit.contain,
+          Visibility(
+            visible: dark,
+            child: Center(
+              child: Image.asset(
+                'lib/app/assets/Logo moderno de PrometriX con gráfico.png',
+                width: 260,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+          Visibility(
+            visible: !dark,
+            child: Center(
+              child: Image.asset(
+                'lib/app/assets/LogoBlanco.png',
+                width: 260,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
           const SizedBox(height: 50),

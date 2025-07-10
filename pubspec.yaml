@@ -66,6 +66,7 @@ flutter:
   uses-material-design: true
   assets:
     - lib/app/assets/Logo moderno de PrometriX con gráfico.png
+    - lib/app/assets/LogoBlanco.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -130,7 +130,7 @@ class _PvPageState extends State<PvPage> {
             ),
             child: PopupMenuButton<Color>(
               icon: const Icon(Icons.palette),
-              iconColor: Colors.white,
+              iconColor: widget.icon,
               offset: const Offset(0, 50),
               itemBuilder: (BuildContext context) {
                 return [
