@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -15,6 +17,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<SubjectData> savedSubjects = [];
+  Color black = Colors.black;
+  Color white = Colors.white;
 
   @override
   void initState() {
@@ -25,9 +29,9 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // Fondo negro
+      backgroundColor: black, // Fondo negro
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: black,
         elevation: 0,
         actions: [
           IconButton(
@@ -46,7 +50,7 @@ class _HomePageState extends State<HomePage> {
           Center(
             child: Image.asset(
               'lib/app/assets/Logo moderno de PrometriX con gráfico.png',
-              width: 260, // Imagen más grande
+              width: 260,
               fit: BoxFit.contain,
             ),
           ),
@@ -60,7 +64,11 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const PvPage()),
+                MaterialPageRoute(
+                    builder: (context) => PvPage(
+                          backgourd: black,
+                          icon: white,
+                        )),
               );
             },
             child: const Text('Nuevo'),
@@ -77,7 +85,11 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => SubjectListPage(subjects: savedSubjects),
+                  builder: (_) => SubjectListPage(
+                    subjects: savedSubjects,
+                    backgroun: black,
+                    icon: white,
+                  ),
                 ),
               );
             },

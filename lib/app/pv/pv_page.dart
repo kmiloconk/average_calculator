@@ -7,7 +7,12 @@ import 'package:path_provider/path_provider.dart';
 
 class PvPage extends StatefulWidget {
   final SubjectData? loadedData;
-  const PvPage({super.key, this.loadedData});
+  final Color backgourd, icon;
+  const PvPage(
+      {super.key,
+      this.loadedData,
+      required this.backgourd,
+      required this.icon});
 
   @override
   State<PvPage> createState() => _PvPageState();
@@ -30,13 +35,11 @@ class _PvPageState extends State<PvPage> {
     Colors.yellow,
   ];
 
-  Color appBarColor = Colors.blue;
-  Color backgroundColor = Colors.blue.withOpacity(0.3);
+  Color selectColor = Colors.blue;
 
   void _changeColors(Color newColor) {
     setState(() {
-      appBarColor = newColor;
-      backgroundColor = newColor.withOpacity(0.3);
+      selectColor = newColor;
     });
   }
 
@@ -100,8 +103,8 @@ class _PvPageState extends State<PvPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          iconTheme: const IconThemeData(color: Colors.white),
+          backgroundColor: widget.backgourd,
+          iconTheme: IconThemeData(color: widget.icon),
           automaticallyImplyLeading: true,
           elevation: 0,
           actions: [
@@ -171,7 +174,7 @@ class _PvPageState extends State<PvPage> {
         body: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [backgroundColor, appBarColor],
+              colors: [widget.backgourd, selectColor],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -189,22 +192,35 @@ class _PvPageState extends State<PvPage> {
                     child: TextField(
                       controller: nameController,
                       textAlign: TextAlign.center,
-                      decoration: const InputDecoration(
-                          hintText: 'Asignatura',
-                          fillColor: Colors.white,
-                          filled: false,
-                          enabled: true),
+                      decoration: InputDecoration(
+                        hintText: 'Asignatura',
+                        hintStyle: TextStyle(color: widget.icon),
+                        fillColor: Colors.white,
+                        filled: false,
+                        enabled: true,
+                      ),
+                      style: TextStyle(color: widget.icon),
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Row(
+                Row(
                   children: [
-                    Expanded(child: Text('', textAlign: TextAlign.center)),
-                    Expanded(child: Text('Nota', textAlign: TextAlign.center)),
-                    SizedBox(width: 60),
-                    Expanded(child: Text('%', textAlign: TextAlign.center)),
-                    Expanded(child: Text('', textAlign: TextAlign.center)),
+                    const Expanded(
+                        child: Text('', textAlign: TextAlign.center)),
+                    Expanded(
+                        child: Text(
+                      'Nota',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: widget.icon),
+                    )),
+                    const SizedBox(width: 60),
+                    Expanded(
+                        child: Text('%',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: widget.icon))),
+                    const Expanded(
+                        child: Text('', textAlign: TextAlign.center)),
                   ],
                 ),
                 Flexible(
@@ -214,9 +230,11 @@ class _PvPageState extends State<PvPage> {
                       if (index == fields.length) {
                         return Center(
                           child: IconButton(
-                            onPressed: () => _addRow(),
-                            icon: const Icon(Icons.add),
-                          ),
+                              onPressed: () => _addRow(),
+                              icon: Icon(
+                                Icons.add,
+                                color: widget.icon,
+                              )),
                         );
                       }
 
@@ -236,7 +254,10 @@ class _PvPageState extends State<PvPage> {
                             const Expanded(child: Text('')),
                             if (showArrow)
                               IconButton(
-                                icon: const Icon(Icons.arrow_upward),
+                                icon: Icon(
+                                  Icons.arrow_upward,
+                                  color: widget.icon,
+                                ),
                                 onPressed: () => _removeRowAt(index),
                               )
                             else
@@ -246,7 +267,10 @@ class _PvPageState extends State<PvPage> {
                             textfile(percentageController, enabled: true),
                             if (showAddButton)
                               IconButton(
-                                icon: const Icon(Icons.arrow_downward),
+                                icon: Icon(
+                                  Icons.arrow_downward,
+                                  color: widget.icon,
+                                ),
                                 onPressed: () => _addRow(insertAt: index + 1),
                               )
                             else
@@ -330,7 +354,7 @@ class _PvPageState extends State<PvPage> {
                         }
                         final subject = SubjectData(
                           name: nameController.text.trim(),
-                          color: appBarColor,
+                          color: selectColor,
                           notes: notesList,
                         );
 
