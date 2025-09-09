@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
-//import 'package:flutter/services.dart';
 import 'package:average_calculator/app/services/services.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'package:average_calculator/app/options/option.dart';
 
 class PvPage extends StatefulWidget {
   final SubjectData? loadedData;
   final Color backgourd, icon;
-  const PvPage(
-      {super.key,
-      this.loadedData,
-      required this.backgourd,
-      required this.icon});
+  const PvPage({
+    super.key,
+    this.loadedData,
+    required this.backgourd,
+    required this.icon,
+  });
 
   @override
   State<PvPage> createState() => _PvPageState();
@@ -23,6 +24,7 @@ class _PvPageState extends State<PvPage> {
   List<SubjectData> savedSubjects = [];
   final TextEditingController averageController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
+
   final List<Color> availableColors = [
     Colors.red,
     Colors.green,
@@ -37,6 +39,32 @@ class _PvPageState extends State<PvPage> {
 
   Color selectColor = Colors.blue;
 
+  String _idioma = AppPreferences.idioma;
+
+  // 🔹 Traducciones
+  final Map<String, Map<String, String>> _traducciones = {
+    "Español": {
+      "asignatura": "Asignatura",
+      "nota": "Nota",
+      "porcentaje": "%",
+      "volver": "Volver",
+      "calcular": "Calcular",
+      "guardar": "Guardar",
+      "guardado_msg": "Su asignatura se ha guardado",
+    },
+    "English": {
+      "asignatura": "Subject",
+      "nota": "Grade",
+      "porcentaje": "%",
+      "volver": "Back",
+      "calcular": "Calculate",
+      "guardar": "Save",
+      "guardado_msg": "Your subject has been saved",
+    },
+  };
+
+  String t(String key) => _traducciones[_idioma]?[key] ?? key;
+
   void _changeColors(Color newColor) {
     setState(() {
       selectColor = newColor;
@@ -46,6 +74,7 @@ class _PvPageState extends State<PvPage> {
   @override
   void initState() {
     super.initState();
+    _idioma = AppPreferences.idioma;
     _loadSubjectsFromFile();
     if (widget.loadedData != null) {
       final data = widget.loadedData!;
@@ -121,54 +150,46 @@ class _PvPageState extends State<PvPage> {
               icon: const Icon(Icons.add),
             ),
           ],
-          leading: Theme(
-            data: Theme.of(context).copyWith(
-              popupMenuTheme: const PopupMenuThemeData(
-                color: Colors.transparent,
-                elevation: 0,
-              ),
-            ),
-            child: PopupMenuButton<Color>(
-              icon: const Icon(Icons.palette),
-              iconColor: widget.icon,
-              offset: const Offset(0, 50),
-              itemBuilder: (BuildContext context) {
-                return [
-                  PopupMenuItem<Color>(
-                    enabled: false,
-                    padding: EdgeInsets.zero,
-                    child: SizedBox(
-                      width: 140,
-                      height: 140,
-                      child: Center(
-                        child: GridView.count(
-                          crossAxisCount: 3,
-                          mainAxisSpacing: 4,
-                          crossAxisSpacing: 4,
-                          shrinkWrap: true,
-                          padding: const EdgeInsets.all(5.0),
-                          children: availableColors.map((color) {
-                            return InkWell(
-                              onTap: () {
-                                Navigator.pop(context);
-                                _changeColors(color);
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: color,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.black26),
-                                ),
+          leading: PopupMenuButton<Color>(
+            icon: const Icon(Icons.palette),
+            iconColor: widget.icon,
+            offset: const Offset(0, 50),
+            itemBuilder: (BuildContext context) {
+              return [
+                PopupMenuItem<Color>(
+                  enabled: false,
+                  padding: EdgeInsets.zero,
+                  child: SizedBox(
+                    width: 140,
+                    height: 140,
+                    child: Center(
+                      child: GridView.count(
+                        crossAxisCount: 3,
+                        mainAxisSpacing: 4,
+                        crossAxisSpacing: 4,
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.all(5.0),
+                        children: availableColors.map((color) {
+                          return InkWell(
+                            onTap: () {
+                              Navigator.pop(context);
+                              _changeColors(color);
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.black26),
                               ),
-                            );
-                          }).toList(),
-                        ),
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ),
                   ),
-                ];
-              },
-            ),
+                ),
+              ];
+            },
           ),
         ),
         body: Container(
@@ -193,7 +214,7 @@ class _PvPageState extends State<PvPage> {
                       controller: nameController,
                       textAlign: TextAlign.center,
                       decoration: InputDecoration(
-                        hintText: 'Asignatura',
+                        hintText: t('asignatura'),
                         hintStyle: TextStyle(color: widget.icon),
                         fillColor: Colors.white,
                         filled: false,
@@ -206,21 +227,19 @@ class _PvPageState extends State<PvPage> {
                 const SizedBox(height: 20),
                 Row(
                   children: [
-                    const Expanded(
-                        child: Text('', textAlign: TextAlign.center)),
+                    const Expanded(child: Text('')),
                     Expanded(
                         child: Text(
-                      'Nota',
+                      t('nota'),
                       textAlign: TextAlign.center,
                       style: TextStyle(color: widget.icon),
                     )),
                     const SizedBox(width: 60),
                     Expanded(
-                        child: Text('%',
+                        child: Text(t('porcentaje'),
                             textAlign: TextAlign.center,
                             style: TextStyle(color: widget.icon))),
-                    const Expanded(
-                        child: Text('', textAlign: TextAlign.center)),
+                    const Expanded(child: Text('')),
                   ],
                 ),
                 Flexible(
@@ -307,7 +326,7 @@ class _PvPageState extends State<PvPage> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      button(Icons.arrow_back, 'Volver', Colors.red, () {
+                      button(Icons.arrow_back, t('volver'), Colors.red, () {
                         if (fields.isNotEmpty) _removeRowAt(fields.length - 1);
                       }),
                       const SizedBox(width: 16),
@@ -319,11 +338,11 @@ class _PvPageState extends State<PvPage> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text('Calcular',
-                            style: TextStyle(color: Colors.white)),
+                        child: Text(t('calcular'),
+                            style: const TextStyle(color: Colors.white)),
                       ),
                       const SizedBox(width: 16),
-                      button(null, 'Guardar', Colors.green, () {
+                      button(null, t('guardar'), Colors.green, () {
                         final List<NoteData> notesList = [];
 
                         for (final field in fields) {
@@ -363,9 +382,9 @@ class _PvPageState extends State<PvPage> {
                         });
 
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Su asignatura se ha guardado'),
-                            duration: Duration(seconds: 2),
+                          SnackBar(
+                            content: Text(t('guardado_msg')),
+                            duration: const Duration(seconds: 2),
                           ),
                         );
                       }),

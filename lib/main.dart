@@ -1,3 +1,4 @@
+import 'package:average_calculator/app/options/option.dart';
 import 'package:average_calculator/app/rutes/page.dart';
 import 'package:average_calculator/app/rutes/rutes.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ void main() async {
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
+  await AppPreferences.init();
   runApp(const MyApp());
 }
 

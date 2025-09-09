@@ -3,10 +3,12 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:average_calculator/app/options/options_page.dart';
 import 'package:flutter/material.dart';
 import 'package:average_calculator/app/pv/pv_page.dart';
 import 'package:average_calculator/app/list/list_page.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:average_calculator/app/options/option.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,9 +19,31 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<SubjectData> savedSubjects = [];
-  Color black = Colors.black;
-  Color white = Colors.white;
-  bool dark = true;
+
+  String _idioma = AppPreferences.idioma;
+  String _tema = AppPreferences.tema;
+
+  // 🔹 Traducciones
+  final Map<String, Map<String, String>> _traducciones = {
+    "Español": {
+      "nuevo": "Nuevo",
+      "guardados": "Guardados",
+    },
+    "English": {
+      "nuevo": "New",
+      "guardados": "Saved",
+    },
+  };
+
+  // 🔹 Colores según tema
+  bool get _esDark => _tema == "Dark";
+  Color get _colorFondo => _esDark ? Colors.black : Colors.white;
+  Color get _colorTexto => _esDark ? Colors.white : Colors.black;
+  Color get _colorAppBar => _esDark ? Colors.black : Colors.white;
+  Color get _colorIcono => _esDark ? Colors.white : Colors.black;
+
+  // 🔹 Traducción rápida
+  String t(String key) => _traducciones[_idioma]?[key] ?? key;
 
   @override
   void initState() {
@@ -30,44 +54,32 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: black,
+      backgroundColor: _colorFondo,
       appBar: AppBar(
-        backgroundColor: black,
+        backgroundColor: _colorAppBar,
         elevation: 0,
         actions: [
           IconButton(
-            icon: Icon(Icons.settings, color: white),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Configuraciones próximamente')),
+            icon: Icon(Icons.settings, color: _colorIcono),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const OptionPage()),
               );
+              // 🔹 Refrescar tema/idioma al volver
+              setState(() {
+                _idioma = AppPreferences.idioma;
+                _tema = AppPreferences.tema;
+              });
             },
           ),
         ],
-        leading: IconButton(
-            onPressed: () {
-              setState(() {
-                if (dark) {
-                  dark = false;
-                  white = Colors.black;
-                  black = Colors.white;
-                } else {
-                  dark = true;
-                  white = Colors.white;
-                  black = Colors.black;
-                }
-              });
-            },
-            icon: Icon(
-              dark ? Icons.mode_night : Icons.sunny,
-              color: white,
-            )),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Visibility(
-            visible: dark,
+            visible: _esDark,
             child: Center(
               child: Image.asset(
                 'lib/app/assets/Logo moderno de PrometriX con gráfico.png',
@@ -77,7 +89,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Visibility(
-            visible: !dark,
+            visible: !_esDark,
             child: Center(
               child: Image.asset(
                 'lib/app/assets/LogoBlanco.png',
@@ -89,27 +101,28 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 50),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.grey[800],
-              foregroundColor: Colors.white,
+              backgroundColor: _esDark ? Colors.grey[800] : Colors.grey[300],
+              foregroundColor: _colorTexto,
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
             ),
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => PvPage(
-                          backgourd: black,
-                          icon: white,
-                        )),
+                  builder: (context) => PvPage(
+                    backgourd: _colorFondo,
+                    icon: _colorTexto,
+                  ),
+                ),
               );
             },
-            child: const Text('Nuevo'),
+            child: Text(t("nuevo")),
           ),
           const SizedBox(height: 20),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.grey[800],
-              foregroundColor: Colors.white,
+              backgroundColor: _esDark ? Colors.grey[800] : Colors.grey[300],
+              foregroundColor: _colorTexto,
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
             ),
             onPressed: () async {
@@ -119,13 +132,13 @@ class _HomePageState extends State<HomePage> {
                 MaterialPageRoute(
                   builder: (_) => SubjectListPage(
                     subjects: savedSubjects,
-                    backgroun: black,
-                    icon: white,
+                    backgroun: _colorFondo,
+                    icon: _colorTexto,
                   ),
                 ),
               );
             },
-            child: const Text('Guardados'),
+            child: Text(t("guardados")),
           ),
         ],
       ),

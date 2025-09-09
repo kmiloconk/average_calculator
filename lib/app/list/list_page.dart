@@ -1,7 +1,6 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:average_calculator/app/pv/pv_page.dart';
 import 'package:average_calculator/app/services/services.dart';
+import 'package:average_calculator/app/options/option.dart'; // 👈 Para acceder a AppPreferences
 import 'package:flutter/material.dart';
 
 class SubjectListPage extends StatefulWidget {
@@ -20,6 +19,8 @@ class SubjectListPage extends StatefulWidget {
 }
 
 class _SubjectListPageState extends State<SubjectListPage> {
+  String _idioma = AppPreferences.idioma;
+
   void _removeSubject(int index) async {
     final removedSubject = widget.subjects[index];
 
@@ -32,7 +33,9 @@ class _SubjectListPageState extends State<SubjectListPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          '${removedSubject.name} eliminada',
+          _idioma == "Español"
+              ? '${removedSubject.name} eliminada'
+              : '${removedSubject.name} deleted',
           style: TextStyle(color: widget.icon),
         ),
         backgroundColor: widget.backgroun,
@@ -47,7 +50,7 @@ class _SubjectListPageState extends State<SubjectListPage> {
       backgroundColor: widget.backgroun,
       appBar: AppBar(
         title: Text(
-          "Asignaturas guardadas",
+          _idioma == "Español" ? "Asignaturas guardadas" : "Saved subjects",
           style: TextStyle(color: widget.icon),
         ),
         backgroundColor: widget.backgroun,
@@ -59,53 +62,63 @@ class _SubjectListPageState extends State<SubjectListPage> {
           },
         ),
       ),
-      body: ListView.builder(
-          itemCount: widget.subjects.length,
-          itemBuilder: (context, index) {
-            final subject = widget.subjects[index];
-            return Dismissible(
-              key: Key(subject.name + index.toString()),
-              direction: DismissDirection.endToStart,
-              background: Container(
-                color: Colors.red,
-                alignment: Alignment.centerRight,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: const Icon(Icons.delete, color: Colors.white),
+      body: widget.subjects.isEmpty
+          ? Center(
+              child: Text(
+                _idioma == "español"
+                    ? "No tienes asignaturas guardadas"
+                    : "No saved subjects",
+                style: TextStyle(color: widget.icon, fontSize: 16),
               ),
-              onDismissed: (direction) {
-                _removeSubject(index);
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                    colors: [subject.color, widget.backgroun],
+            )
+          : ListView.builder(
+              itemCount: widget.subjects.length,
+              itemBuilder: (context, index) {
+                final subject = widget.subjects[index];
+                return Dismissible(
+                  key: Key(subject.name + index.toString()),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: const Icon(Icons.delete, color: Colors.white),
                   ),
-                ),
-                child: ListTile(
-                  title: Text(
-                    subject.name,
-                    style: TextStyle(color: widget.icon),
-                  ),
-                  trailing: Icon(Icons.arrow_forward_ios, color: widget.icon),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => PvPage(
-                          loadedData: subject,
-                          backgourd: widget.backgroun,
-                          icon: widget.icon,
-                        ),
-                      ),
-                    );
+                  onDismissed: (direction) {
+                    _removeSubject(index);
                   },
-                ),
-              ),
-            );
-          }),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: [subject.color, widget.backgroun],
+                      ),
+                    ),
+                    child: ListTile(
+                      title: Text(
+                        subject.name,
+                        style: TextStyle(color: widget.icon),
+                      ),
+                      trailing:
+                          Icon(Icons.arrow_forward_ios, color: widget.icon),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PvPage(
+                              loadedData: subject,
+                              backgourd: widget.backgroun,
+                              icon: widget.icon,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                );
+              }),
     );
   }
 }
