@@ -125,7 +125,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               );
             },
-            child: const Text('Mis listas'),
+            child: const Text('Guardados'),
           ),
         ],
       ),
