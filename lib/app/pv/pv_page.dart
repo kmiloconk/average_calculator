@@ -30,7 +30,7 @@ class _PvPageState extends State<PvPage> {
     Colors.blue,
     Colors.grey,
     Colors.orange,
-    Colors.purpleAccent,
+    const Color.fromARGB(255, 248, 7, 176),
     Colors.brown,
     Colors.yellow,
   ];
@@ -451,7 +451,7 @@ class _PvPageState extends State<PvPage> {
   Widget button(
       IconData? icon, String text, Color color, VoidCallback onPressed) {
     return SizedBox(
-      width: 100,
+      width: 110,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
