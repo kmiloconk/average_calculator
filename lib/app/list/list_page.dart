@@ -19,7 +19,7 @@ class SubjectListPage extends StatefulWidget {
 }
 
 class _SubjectListPageState extends State<SubjectListPage> {
-  String _idioma = AppPreferences.idioma;
+  final String _idioma = AppPreferences.idioma;
 
   void _removeSubject(int index) async {
     final removedSubject = widget.subjects[index];
