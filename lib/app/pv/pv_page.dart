@@ -200,9 +200,11 @@ class _PvPageState extends State<PvPage> {
               end: Alignment.bottomCenter,
             ),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Align(
@@ -324,25 +326,31 @@ class _PvPageState extends State<PvPage> {
                 const SizedBox(height: 24),
                 Center(
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisSize: MainAxisSize.max,
                     children: [
-                      button(Icons.arrow_back, t('volver'), Colors.red, () {
-                        if (fields.isNotEmpty) _removeRowAt(fields.length - 1);
-                      }),
-                      const SizedBox(width: 16),
-                      ElevatedButton(
-                        onPressed: _calculateAverage,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Text(t('calcular'),
-                            style: const TextStyle(color: Colors.white)),
+                      Expanded(
+                        child: button(Icons.arrow_back, t('volver'), Colors.red, () {
+                          if (fields.isNotEmpty) _removeRowAt(fields.length - 1);
+                        }),
                       ),
-                      const SizedBox(width: 16),
-                      button(null, t('guardar'), Colors.green, () {
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _calculateAverage,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(t('calcular'),
+                              style: const TextStyle(color: Colors.white)),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: button(null, t('guardar'), Colors.green, () {
                         final List<NoteData> notesList = [];
 
                         for (final field in fields) {
@@ -387,14 +395,16 @@ class _PvPageState extends State<PvPage> {
                             duration: const Duration(seconds: 2),
                           ),
                         );
-                      }),
+                        }),
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-        ));
+        ),
+      ));
   }
 
   void _calculateAverage() {

@@ -112,9 +112,11 @@ class _OptionPageState extends State<OptionPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (context) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+        return SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
             ListTile(
               title: Text(
                 titulo,
@@ -139,7 +141,8 @@ class _OptionPageState extends State<OptionPage> {
                     }
                   },
                 )),
-          ],
+            ],
+          ),
         );
       },
     );
@@ -158,8 +161,10 @@ class _OptionPageState extends State<OptionPage> {
         backgroundColor: _colorAppBar,
         iconTheme: IconThemeData(color: _colorIcono),
       ),
-      body: ListView(
-        children: [
+      body: SafeArea(
+        top: false,
+        child: ListView(
+          children: [
           // Idioma
           ListTile(
             title: Text(t("idioma"), style: TextStyle(color: _colorTexto)),
@@ -213,7 +218,8 @@ class _OptionPageState extends State<OptionPage> {
             trailing: Icon(Icons.info_outline, color: _colorIcono),
             onTap: _mostrarContacto,
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

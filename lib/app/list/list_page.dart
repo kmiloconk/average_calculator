@@ -62,7 +62,9 @@ class _SubjectListPageState extends State<SubjectListPage> {
           },
         ),
       ),
-      body: widget.subjects.isEmpty
+      body: SafeArea(
+        top: false,
+        child: widget.subjects.isEmpty
           ? Center(
               child: Text(
                 _idioma == "español"
@@ -119,6 +121,7 @@ class _SubjectListPageState extends State<SubjectListPage> {
                   ),
                 );
               }),
+      ),
     );
   }
 }
