@@ -84,8 +84,8 @@ class _OptionPageState extends State<OptionPage> {
         title: Text(t("contacto"), style: TextStyle(color: _colorTexto)),
         content: Text(
           _idioma == "Español"
-              ? "📧 correo: ejemplo@correo.com\n📱 número: +56 9 1234 5678"
-              : "📧 email: ejemplo@correo.com\n📱 phone: +56 9 1234 5678",
+              ? "📧 correo: camilo.fig.val@gmail.com"
+              : "📧 email: camilo.fig.val@gmail.com",
           style: TextStyle(color: _colorTexto),
         ),
         actions: [

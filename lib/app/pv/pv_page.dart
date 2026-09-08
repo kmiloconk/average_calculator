@@ -151,6 +151,10 @@ class _PvPageState extends State<PvPage> {
             ),
           ],
           leading: PopupMenuButton<Color>(
+            color: Colors.transparent,
+            elevation: 0,
+            shadowColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
             icon: const Icon(Icons.palette),
             iconColor: widget.icon,
             offset: const Offset(0, 50),
