@@ -51,6 +51,8 @@ class _PvPageState extends State<PvPage> {
       "calcular": "Calcular",
       "guardar": "Guardar",
       "guardado_msg": "Su asignatura se ha guardado",
+      "advertencia": "Advertencia:",
+      "porcentaje_warning": "Los porcentajes no suman 100%. Verifique los valores.",
     },
     "English": {
       "asignatura": "Subject",
@@ -60,6 +62,8 @@ class _PvPageState extends State<PvPage> {
       "calcular": "Calculate",
       "guardar": "Save",
       "guardado_msg": "Your subject has been saved",
+      "advertencia": "Warning:",
+      "porcentaje_warning": "Percentages do not add up to 100%. Check the values.",
     },
   };
 
@@ -147,7 +151,7 @@ class _PvPageState extends State<PvPage> {
                   _addRow();
                 });
               },
-              icon: const Icon(Icons.add),
+              icon: const Icon(Icons.refresh),
             ),
           ],
           leading: PopupMenuButton<Color>(
@@ -414,6 +418,7 @@ class _PvPageState extends State<PvPage> {
   void _calculateAverage() {
     double totalWeightedSum = 0;
     double totalPercentage = 0;
+    bool invalidSubPercentage = false;
 
     for (int i = 0; i < fields.length; i++) {
       final current = fields[i];
@@ -452,6 +457,10 @@ class _PvPageState extends State<PvPage> {
           }
         }
 
+        if ((total - 100).abs() > 0.001) {
+          invalidSubPercentage = true;
+        }
+
         if (total > 0) {
           note = sum / total;
           noteCtrl.text = note.toStringAsFixed(1);
@@ -479,6 +488,32 @@ class _PvPageState extends State<PvPage> {
     setState(() {
       averageController.text = result;
     });
+
+    // El cálculo se mantiene; solo se informa si el total no es 100%.
+    if ((totalPercentage - 100).abs() > 0.001 || invalidSubPercentage) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+          content: RichText(
+            text: TextSpan(
+              style: const TextStyle(color: Colors.white),
+              children: [
+                TextSpan(
+                  text: '${t('advertencia')} ',
+                  style: const TextStyle(
+                    color: Colors.redAccent,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextSpan(text: t('porcentaje_warning')),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
   }
 
   Widget button(
