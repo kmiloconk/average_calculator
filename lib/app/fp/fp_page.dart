@@ -58,6 +58,12 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         backgroundColor: _colorAppBar,
         elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.question_mark, color: _colorIcono),
+          onPressed: () {
+            // Tutorial próximamente.
+          },
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.settings, color: _colorIcono),
