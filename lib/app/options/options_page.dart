@@ -12,6 +12,7 @@ class _OptionPageState extends State<OptionPage> {
   String _idioma = AppPreferences.idioma;
   String _tema = AppPreferences.tema;
   final String _version = AppPreferences.version;
+  bool _versionSnackBarVisible = false;
 
   // 🔹 Traducciones básicas
   final Map<String, Map<String, String>> _traducciones = {
@@ -23,7 +24,7 @@ class _OptionPageState extends State<OptionPage> {
       "contacto": "Contacto",
       "selecciona_idioma": "Selecciona idioma",
       "selecciona_tema": "Selecciona tema",
-      "proximamente": "Próximamente versión de pago sin anuncios",
+      "proximamente": "Próximamente versión de pago con más funciones",
       "cerrar": "Cerrar",
     },
     "English": {
@@ -34,7 +35,7 @@ class _OptionPageState extends State<OptionPage> {
       "contacto": "Contact",
       "selecciona_idioma": "Select language",
       "selecciona_tema": "Select theme",
-      "proximamente": "Coming soon: paid version without ads",
+      "proximamente": "Coming soon: paid version with more features",
       "cerrar": "Close",
     },
   };
@@ -75,6 +76,13 @@ class _OptionPageState extends State<OptionPage> {
   String traducirTema(String tema) => _traduccionTemas[_idioma]?[tema] ?? tema;
   String traducirIdioma(String idioma) =>
       _traduccionIdiomas[_idioma]?[idioma] ?? idioma;
+
+  String traducirVersion(String version) {
+    if (version.toLowerCase() == "gratuita") {
+      return _idioma == "Español" ? "Gratuita" : "Free";
+    }
+    return version;
+  }
 
   void _mostrarContacto() {
     showDialog(
@@ -202,14 +210,30 @@ class _OptionPageState extends State<OptionPage> {
           // Versión
           ListTile(
             title: Text(t("version"), style: TextStyle(color: _colorTexto)),
-            trailing: Text(_version, style: TextStyle(color: _colorTexto)),
-            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(t("proximamente")),
-                backgroundColor: _esDark ? Colors.grey[900] : Colors.grey[300],
-                behavior: SnackBarBehavior.floating,
-              ),
-            ),
+            trailing:
+                Text(traducirVersion(_version), style: TextStyle(color: _colorTexto)),
+            onTap: () async {
+              if (_versionSnackBarVisible) return;
+
+              _versionSnackBarVisible = true;
+
+              final controller = ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    t("proximamente"),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  backgroundColor: Colors.grey[900],
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+
+              await controller.closed;
+
+              if (mounted) {
+                _versionSnackBarVisible = false;
+              }
+            },
           ),
 
           // Contacto
