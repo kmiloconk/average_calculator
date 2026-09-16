@@ -9,6 +9,7 @@ import 'package:average_calculator/app/pv/pv_page.dart';
 import 'package:average_calculator/app/list/list_page.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:average_calculator/app/options/option.dart';
+import 'package:average_calculator/app/tutorial/tutorial_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -61,8 +62,17 @@ class _HomePageState extends State<HomePage> {
         leading: IconButton(
           icon: Icon(Icons.question_mark, color: _colorIcono),
           onPressed: () {
-            // Tutorial próximamente.
-          },
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TutorialPage(
+          background: _colorFondo,
+          icon: _colorIcono,
+        ),
+
+      ),
+    );
+  },
         ),
         actions: [
           IconButton(
