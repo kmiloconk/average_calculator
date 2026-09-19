@@ -53,6 +53,8 @@ class _PvPageState extends State<PvPage> {
       "guardado_msg": "Su asignatura se ha guardado",
       "advertencia": "Advertencia:",
       "porcentaje_warning": "Los porcentajes no suman 100%. Verifique los valores.",
+      "limite_titulo": "Límite de materias alcanzado",
+      "limite_msg": "La versión gratuita permite guardar hasta 5 materias. Próximamente podrás desbloquear materias ilimitadas y más funciones.",
     },
     "English": {
       "asignatura": "Subject",
@@ -64,6 +66,8 @@ class _PvPageState extends State<PvPage> {
       "guardado_msg": "Your subject has been saved",
       "advertencia": "Warning:",
       "porcentaje_warning": "Percentages do not add up to 100%. Check the values.",
+      "limite_titulo": "Subject limit reached",
+      "limite_msg": "The free version allows you to save up to 5 subjects. Soon you'll be able to unlock unlimited subjects and more features.",
     },
   };
 
@@ -358,7 +362,43 @@ class _PvPageState extends State<PvPage> {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: button(null, t('guardar'), Colors.green, () {
+                        child: button(null, t('guardar'), Colors.green, () async {
+                        await _loadSubjectsFromFile();
+
+                        final subjectName = nameController.text.trim();
+                        final existingIndex =
+                            savedSubjects.indexWhere((s) => s.name == subjectName);
+
+                        // Máximo 5 materias distintas en la versión gratuita.
+                        // Editar/reemplazar una materia existente sigue permitido.
+                        if (existingIndex == -1 && savedSubjects.length >= 5) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              behavior: SnackBarBehavior.floating,
+                              duration: const Duration(seconds: 4),
+                              backgroundColor: Colors.grey[900],
+                              content: RichText(
+                                text: TextSpan(
+                                  style: const TextStyle(color: Colors.white),
+                                  children: [
+                                    TextSpan(
+                                      text: '${t('limite_titulo')}: ',
+                                      style: const TextStyle(
+                                        color: Colors.redAccent,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    TextSpan(text: t('limite_msg')),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
                         final List<NoteData> notesList = [];
 
                         for (final field in fields) {
