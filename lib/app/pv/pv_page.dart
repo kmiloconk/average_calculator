@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:average_calculator/app/options/option.dart';
-
 class PvPage extends StatefulWidget {
   final SubjectData? loadedData;
   final Color backgourd, icon;
@@ -14,17 +13,14 @@ class PvPage extends StatefulWidget {
     required this.backgourd,
     required this.icon,
   });
-
   @override
   State<PvPage> createState() => _PvPageState();
 }
-
 class _PvPageState extends State<PvPage> {
   final List<Map<String, dynamic>> fields = [];
   List<SubjectData> savedSubjects = [];
   final TextEditingController averageController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
-
   final List<Color> availableColors = [
     Colors.red,
     Colors.green,
@@ -36,11 +32,13 @@ class _PvPageState extends State<PvPage> {
     Colors.brown,
     Colors.yellow,
   ];
-
-  Color selectColor = Colors.blue;
-
+  // Caché compartida entre aperturas de PvPage durante la sesión.
+  // Evita que la pantalla vuelva a dibujarse en azul al entrar nuevamente.
+  static Color? _cachedPreferredColor;
+  Color selectColor = _cachedPreferredColor ?? Colors.blue;
+  bool _preferredColorReady = _cachedPreferredColor != null;
+  bool _colorChangedByUser = false;
   String _idioma = AppPreferences.idioma;
-
   // 🔹 Traducciones
   final Map<String, Map<String, String>> _traducciones = {
     "Español": {
@@ -70,13 +68,58 @@ class _PvPageState extends State<PvPage> {
       "limite_msg": "The free version allows you to save up to 5 subjects. Soon you'll be able to unlock unlimited subjects and more features.",
     },
   };
-
   String t(String key) => _traducciones[_idioma]?[key] ?? key;
 
+  // Guarda la preferencia de color independientemente de las materias.
+  Future<void> _savePreferredColor(Color color) async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/preferred_color.json');
+      await file.writeAsString(jsonEncode({'color': color.toARGB32()}));
+    } catch (error) {
+      debugPrint('No se pudo guardar el color preferido: $error');
+    }
+  }
+
+  Future<void> _loadPreferredColor() async {
+    Color? storedColor;
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/preferred_color.json');
+      if (await file.exists()) {
+        final data = jsonDecode(await file.readAsString());
+        final colorValue = data['color'];
+        if (colorValue is int) {
+          storedColor = Color(colorValue);
+        }
+      }
+    } catch (error) {
+      debugPrint('No se pudo cargar el color preferido: $error');
+    }
+
+    if (!mounted) return;
+    // Evita sobrescribir un color que el usuario acaba de seleccionar.
+    if (!_colorChangedByUser) {
+      final colorToShow = storedColor ?? Colors.blue;
+      _cachedPreferredColor = colorToShow;
+      setState(() {
+        selectColor = colorToShow;
+        _preferredColorReady = true;
+      });
+    } else if (!_preferredColorReady) {
+      setState(() => _preferredColorReady = true);
+    }
+  }
+
   void _changeColors(Color newColor) {
+    _colorChangedByUser = true;
+    // Actualizar la memoria inmediatamente evita la espera al reentrar.
+    _cachedPreferredColor = newColor;
     setState(() {
       selectColor = newColor;
+      _preferredColorReady = true;
     });
+    _savePreferredColor(newColor);
   }
 
   @override
@@ -84,11 +127,14 @@ class _PvPageState extends State<PvPage> {
     super.initState();
     _idioma = AppPreferences.idioma;
     _loadSubjectsFromFile();
+    if (widget.loadedData == null && !_preferredColorReady) {
+      _loadPreferredColor();
+    }
     if (widget.loadedData != null) {
       final data = widget.loadedData!;
       nameController.text = data.name;
-      _changeColors(data.color);
-
+      // Cada materia guardada conserva su propio color.
+      selectColor = data.color;
       for (var noteData in data.notes) {
         fields.add({
           'note': TextEditingController(text: noteData.note.toString()),
@@ -113,7 +159,6 @@ class _PvPageState extends State<PvPage> {
         'showAddButton': true,
         'showArrow': false
       };
-
       if (insertAt != null) {
         fields.insert(insertAt, newRow);
         fields[insertAt - 1]['editable'] = false;
@@ -124,7 +169,6 @@ class _PvPageState extends State<PvPage> {
       }
     });
   }
-
   void _removeRowAt(int index) {
     setState(() {
       if (index != 0) {
@@ -135,9 +179,14 @@ class _PvPageState extends State<PvPage> {
       }
     });
   }
-
   @override
   Widget build(BuildContext context) {
+    // En un arranque nuevo se espera el archivo antes de mostrar el gradiente.
+    // Así jamás se dibuja el azul por defecto sobre un color ya guardado.
+    if (widget.loadedData == null && !_preferredColorReady) {
+      return Scaffold(backgroundColor: widget.backgourd);
+    }
+
     return Scaffold(
         appBar: AppBar(
           backgroundColor: widget.backgourd,
@@ -147,13 +196,11 @@ class _PvPageState extends State<PvPage> {
           actions: [
             IconButton(
               onPressed: () {
-                setState(() {
-                  nameController.clear();
-                  averageController.clear();
-                  fields.clear();
-                  _changeColors(Colors.blue);
-                  _addRow();
-                });
+                nameController.clear();
+                averageController.clear();
+                fields.clear();
+                // Reset limpia los datos, pero conserva el color seleccionado.
+                _addRow();
               },
               icon: const Icon(Icons.refresh),
             ),
@@ -270,7 +317,6 @@ class _PvPageState extends State<PvPage> {
                               )),
                         );
                       }
-
                       final row = fields[index];
                       final noteController =
                           row['note'] as TextEditingController;
@@ -279,7 +325,6 @@ class _PvPageState extends State<PvPage> {
                       final editable = row['editable'] as bool;
                       final showAddButton = row['showAddButton'] as bool;
                       final showArrow = row['showArrow'] as bool;
-
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: Row(
@@ -364,11 +409,9 @@ class _PvPageState extends State<PvPage> {
                       Expanded(
                         child: button(null, t('guardar'), Colors.green, () async {
                         await _loadSubjectsFromFile();
-
                         final subjectName = nameController.text.trim();
                         final existingIndex =
                             savedSubjects.indexWhere((s) => s.name == subjectName);
-
                         // Máximo 5 materias distintas en la versión gratuita.
                         // Editar/reemplazar una materia existente sigue permitido.
                         if (existingIndex == -1 && savedSubjects.length >= 5) {
@@ -398,9 +441,7 @@ class _PvPageState extends State<PvPage> {
                           );
                           return;
                         }
-
                         final List<NoteData> notesList = [];
-
                         for (final field in fields) {
                           final noteText =
                               (field['note'] as TextEditingController)
@@ -410,12 +451,10 @@ class _PvPageState extends State<PvPage> {
                               (field['percentage'] as TextEditingController)
                                   .text
                                   .trim();
-
                           final note = double.tryParse(noteText);
                           final percentage = double.tryParse(percentText);
                           final editable = field['editable'] as bool;
                           final showArrow = field['showArrow'] as bool;
-
                           if (note != null && percentage != null) {
                             notesList.add(
                               NoteData(
@@ -432,11 +471,9 @@ class _PvPageState extends State<PvPage> {
                           color: selectColor,
                           notes: notesList,
                         );
-
                         setState(() {
                           addOrReplaceSubject(subject.name, subject.color);
                         });
-
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(t('guardado_msg')),
@@ -454,25 +491,19 @@ class _PvPageState extends State<PvPage> {
         ),
       ));
   }
-
   void _calculateAverage() {
     double totalWeightedSum = 0;
     double totalPercentage = 0;
     bool invalidSubPercentage = false;
-
     for (int i = 0; i < fields.length; i++) {
       final current = fields[i];
-
       final isEditable = current['editable'] as bool;
       final noteCtrl = current['note'] as TextEditingController;
       final percentageCtrl = current['percentage'] as TextEditingController;
       final showArrow = current['showArrow'] as bool;
-
       double note = 0;
       double percentage = 0;
-
       if (showArrow) continue;
-
       if (!isEditable) {
         List<Map<String, dynamic>> subNotes = [];
         int j = i + 1;
@@ -480,27 +511,21 @@ class _PvPageState extends State<PvPage> {
           subNotes.add(fields[j]);
           j++;
         }
-
         double sum = 0;
         double total = 0;
-
         for (var sub in subNotes) {
           final noteText = sub['note'].text.trim();
           final percentText = sub['percentage'].text.trim();
-
           final subNote = double.tryParse(noteText);
           final subPercent = double.tryParse(percentText);
-
           if (subNote != null && subPercent != null) {
             sum += subNote * subPercent;
             total += subPercent;
           }
         }
-
         if ((total - 100).abs() > 0.001) {
           invalidSubPercentage = true;
         }
-
         if (total > 0) {
           note = sum / total;
           noteCtrl.text = note.toStringAsFixed(1);
@@ -510,13 +535,11 @@ class _PvPageState extends State<PvPage> {
         note = double.tryParse(noteCtrl.text.trim()) ?? 0;
         percentage = double.tryParse(percentageCtrl.text.trim()) ?? 0;
       }
-
       if (percentage > 0) {
         totalWeightedSum += note * percentage;
         totalPercentage += percentage;
       }
     }
-
     String result;
     if (totalPercentage > 0) {
       double average = totalWeightedSum / totalPercentage;
@@ -524,11 +547,9 @@ class _PvPageState extends State<PvPage> {
     } else {
       result = 'N/A';
     }
-
     setState(() {
       averageController.text = result;
     });
-
     // El cálculo se mantiene; solo se informa si el total no es 100%.
     if ((totalPercentage - 100).abs() > 0.001 || invalidSubPercentage) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -555,7 +576,6 @@ class _PvPageState extends State<PvPage> {
       );
     }
   }
-
   Widget button(
       IconData? icon, String text, Color color, VoidCallback onPressed) {
     return SizedBox(
@@ -574,14 +594,11 @@ class _PvPageState extends State<PvPage> {
       ),
     );
   }
-
   Future<void> _loadSubjectsFromFile() async {
     final directory = await getApplicationDocumentsDirectory();
     final file = File('${directory.path}/subjects.json');
-
     if (await file.exists()) {
       final jsonData = jsonDecode(await file.readAsString());
-
       setState(() {
         savedSubjects = (jsonData as List<dynamic>).map((subject) {
           return SubjectData(
@@ -592,7 +609,6 @@ class _PvPageState extends State<PvPage> {
             }).toList(),
           );
         }).toList();
-
         // Si se cargó un subject específico, recreamos los campos
         if (widget.loadedData != null) {
           fields.clear();
@@ -610,18 +626,14 @@ class _PvPageState extends State<PvPage> {
       });
     }
   }
-
   void addOrReplaceSubject(String name, Color color) {
     final notesList = <NoteData>[];
-
     for (final field in fields) {
       final noteText = (field['note'] as TextEditingController).text.trim();
       final percentText =
           (field['percentage'] as TextEditingController).text.trim();
-
       final note = double.tryParse(noteText);
       final percentage = double.tryParse(percentText);
-
       if (note != null && percentage != null) {
         notesList.add(NoteData(
           note: note,
@@ -632,9 +644,7 @@ class _PvPageState extends State<PvPage> {
         ));
       }
     }
-
     final subject = SubjectData(name: name, color: color, notes: notesList);
-
     setState(() {
       final index = savedSubjects.indexWhere((s) => s.name == name);
       if (index != -1) {
@@ -643,10 +653,8 @@ class _PvPageState extends State<PvPage> {
         savedSubjects.add(subject);
       }
     });
-
     saveSubjectsToFile(savedSubjects);
   }
-
   Widget textfile(TextEditingController controller, {bool enabled = true}) {
     return SizedBox(
       width: 100,
@@ -668,26 +676,22 @@ class _PvPageState extends State<PvPage> {
     );
   }
 }
-
 class SubjectData {
   final String name;
   final Color color;
   final List<NoteData> notes;
-
   SubjectData({
     required this.name,
     required this.color,
     required this.notes,
   });
 }
-
 class NoteData {
   final double note;
   final double percentage;
   final bool editable;
   final bool showAddButton;
   final bool showArrow;
-
   NoteData({
     required this.note,
     required this.percentage,
@@ -695,7 +699,6 @@ class NoteData {
     this.showAddButton = true,
     this.showArrow = false,
   });
-
   Map<String, dynamic> toJson() => {
         'note': note,
         'percentage': percentage,
@@ -703,7 +706,6 @@ class NoteData {
         'showAddButton': showAddButton,
         'showArrow': showArrow,
       };
-
   factory NoteData.fromJson(Map<String, dynamic> json) => NoteData(
         note: (json['note'] as num).toDouble(),
         percentage: (json['percentage'] as num).toDouble(),
